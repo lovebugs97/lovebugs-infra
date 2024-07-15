@@ -1,0 +1,63 @@
+services:
+  vault:
+    image: vault:1.13.3
+    container_name: vault
+    ports:
+      - 8200:8200
+    restart: always
+    volumes:
+      - C:/Users/h9701/mounted/vault/logs:/vault/logs:rw
+      - C:/Users/h9701/mounted/vault/file:/vault/file:rw
+      - C:/Users/h9701/mounted/vault/config:/vault/config:rw
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=myroot
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_TOKEN=myroot
+    entrypoint: vault server -config=/vault/config/vault.json
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    volumes:
+      - C:/Users/h9701/mounted/rabbitmq/etc:/etc/rabbitmq:rw
+      - C:/Users/h9701/mounted/rabbitmq/data/:/var/lib/rabbitmq:rw
+      - C:/Users/h9701/mounted/rabbitmq/logs/:/var/log/rabbitmq:rw
+    ports:
+      - 5672:5672 
+      - 15672:15672
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    volumes:
+      - C:/Users/h9701/mounted/postgresql:/var/lib/postgresql/data:rw
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+
+  redis_container:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - C:/Users/h9701/mounted/redis/data:/data:rw
+      - C:/Users/h9701/mounted/redis/conf/redis.conf:/usr/local/conf/redis.conf:rw
+
+    # 컨테이너에 docker label을 이용해서 메타데이터 추가
+    labels:
+      - "name=redis"
+      - "mode=standalone"
+    restart: always
+    command: redis-server /usr/local/conf/redis.conf
