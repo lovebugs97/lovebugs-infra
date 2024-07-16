@@ -1,0 +1,84 @@
+networks:
+  lovebugs-test:
+    driver: bridge
+
+# 실행 전 vault.config 파일을 마운트할 볼륨으로 복사
+
+services:
+  vault:
+    image: vault:1.13.3
+    container_name: vault
+    ports:
+      - 8200:8200
+    restart: always
+    volumes:
+      - /home/ubuntu/vault/logs:/vault/logs:/vault/logs:rw
+      - /home/ubuntu/vault/file:/vault/file:rw
+      - /home/ubuntu/vault/config:/vault/config:rw
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=myroot
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_TOKEN=myroot
+    networks:
+      - lovebugs-test
+    entrypoint: vault server -config=/vault/config/vault.json
+
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    volumes:
+      - /home/ubuntu/rabbitmq/etc:/etc/rabbitmq:rw
+      - /home/ubuntu/rabbitmq/data/:/var/lib/rabbitmq:rw
+      - /home/ubuntu/rabbitmq/logs/:/var/log/rabbitmq:rw
+    ports:
+      - 5672:5672 
+      - 15672:15672
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbit
+      RABBITMQ_DEFAULT_PASS: rabbit
+    networks:
+      - lovebugs-test
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    volumes:
+      - /home/ubuntu/postgresql/data:/var/lib/postgresql/data:rw
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    networks:
+      - lovebugs-test
+
+  redis_container:
+    image: redis:latest
+    container_name: redis
+    volumes:
+      - /home/ubuntu/redis/data:/data:rw
+      - /home/ubuntu/redis/conf/redis.conf:/usr/local/conf/redis.conf:rw
+    labels:
+      - "name=redis"
+      - "mode=standalone"
+    restart: always
+    networks:
+      - lovebugs-test
+    command: redis-server /usr/local/conf/redis.conf
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    volumes:
+      - /home/ubuntu/jenkins_backup:/var/jenkins_home:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    networks:
+      - lovebugs-test
+    ports:
+      - 8000:8080
