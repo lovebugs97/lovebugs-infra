@@ -12,7 +12,7 @@ services:
       - 3000:8200
     restart: always
     volumes:
-      - /home/ubuntu/vault/logs:/vault/logs:/vault/logs:rw
+      - /home/ubuntu/vault/logs:/vault/logs:rw
       - /home/ubuntu/vault/file:/vault/file:rw
       - /home/ubuntu/vault/config:/vault/config:rw
     cap_add:
@@ -30,7 +30,6 @@ services:
     volumes:
       - /home/ubuntu/rabbitmq/etc:/etc/rabbitmq:rw
       - /home/ubuntu/rabbitmq/data/:/var/lib/rabbitmq:rw
-      - /home/ubuntu/rabbitmq/logs/:/var/log/rabbitmq:rw
     ports:
       - 5672:5672 
       - 15672:15672
@@ -57,8 +56,6 @@ services:
   redis_container:
     image: redis:latest
     container_name: redis
-    ports:
-      - 6379:6379
     volumes:
       - /home/ubuntu/redis/data:/data:rw
       - /home/ubuntu/redis/conf/redis.conf:/usr/local/conf/redis.conf:rw
